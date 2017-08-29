@@ -39,6 +39,7 @@ class team:
         self.players = [player() for i in range(self.player_count)]
         self.url = ' '
         self.total_negative = 0.0 # The addition of all negative on ONE team
+        self.team_alive = True
 
 class game:
     def __init__(self):
@@ -110,7 +111,14 @@ def print_all_player_stats():
                 print('Team ' + str(i + 1) + ' Player ' + str(i2 + 1) + ' Upper Positive Range: ' + str(the_game.teams[i].players[i2].upper_positive_range))
                 print('Team ' + str(i + 1) + ' Player ' + str(i2 + 1) + ' Alive: ' + str(the_game.teams[i].players[i2].alive))
                 print()
-        
+
+# Function to kill a player. Run calculate_player_range() to find the new range of all players
+def kill_player(team_number, player_number):
+    the_game.teams[team_number].players[player_number].alive = False
+    the_game.teams[team_number].players[player_number].positive = 0.0
+    the_game.teams[team_number].players[player_number].negative = 0.0
+    calculate_player_range()
+
 # Open the URL and save it to page
 url = input('Enter the HLTV URL: ')
 user_agent_spoof = {'User-Agent':'Mozilla/5.0'}
