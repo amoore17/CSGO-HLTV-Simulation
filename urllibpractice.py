@@ -14,8 +14,8 @@ class player:
         self.dkr = 0.0 # Death-Kill Ratio
         self.kpr = 0.0 # Kills Per Round
         self.dpr = 0.0 # Deaths Per Round
-        self.hltv_rating_one = 0.0 # Rating 1.0
-        self.hltv_rating_two = 0.0 # Rating 2.0
+        self.hltv_rating = 0.0
+        self.inv_hltv_rating = 0.0
         self.url = ' '
         self.stats_url = ' '
 
@@ -23,7 +23,7 @@ class team:
     def __init__(self):
         self.won_rounds = 0
         self.lost_rounds = 0
-        self.name = 'aTeam'
+        self.name = 'A-Team'
         self.player_count = 5
         self.players = [player() for i in range(self.player_count)]
         self.url = ' '
@@ -115,4 +115,29 @@ for i in range(the_game.team_count): # Open the URL to the teams one at a time
         the_game.teams[i].players[i2].rounds = re.findall(r'<div class="stats-row"><span>Rounds played</span><span>(\d*)', page, re.I)
         the_game.teams[i].players[i2].rounds = int(the_game.teams[i].players[i2].rounds[0])
         print('Player ' + str(i2 + 1) + ' rounds: ' + str(the_game.teams[i].players[i2].rounds))
+
+        # Grab HLTV Rating
+        the_game.teams[i].players[i2].hltv_rating = re.findall(r'"strong">(.*)</span></div>', page, re.I)
+        the_game.teams[i].players[i2].hltv_rating = float(the_game.teams[i].players[i2].hltv_rating[0])
+        print('Player ' + str(i2 + 1) + ' HLTV Rating: ' + str(the_game.teams[i].players[i2].hltv_rating))
+
+        # Calculate kdr
+        the_game.teams[i].players[i2].kdr = the_game.teams[i].players[i2].kills / the_game.teams[i].players[i2].deaths
+        print('Player ' + str(i2 + 1) + ' KDR: ' + str(the_game.teams[i].players[i2].kdr))
+
+        # Calculate dkr
+        the_game.teams[i].players[i2].dkr = the_game.teams[i].players[i2].deaths / the_game.teams[i].players[i2].kills
+        print('Player ' + str(i2 + 1) + ' DKR: ' + str(the_game.teams[i].players[i2].dkr))
+
+        # Calculate kpr
+        the_game.teams[i].players[i2].kpr = the_game.teams[i].players[i2].kills / the_game.teams[i].players[i2].rounds
+        print('Player ' + str(i2 + 1) + ' KPR: ' + str(the_game.teams[i].players[i2].kpr))
+
+        # Calculate dpr
+        the_game.teams[i].players[i2].dpr = the_game.teams[i].players[i2].deaths / the_game.teams[i].players[i2].rounds
+        print('Player ' + str(i2 + 1) + ' DPR: ' + str(the_game.teams[i].players[i2].dpr))
+
+        # Calculate inv_hltv_rating
+        the_game.teams[i].players[i2].inv_hltv_rating = pow(the_game.teams[i].players[i2].hltv_rating, (-1))
+        print('Player ' + str(i2 + 1) + ' Inverse HLTV Rating: ' + str(the_game.teams[i].players[i2].inv_hltv_rating))
         print()
