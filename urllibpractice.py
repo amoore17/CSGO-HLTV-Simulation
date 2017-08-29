@@ -48,13 +48,13 @@ the_game = game()
 
 # Find and save team names
 for i in range(the_game.team_count):
-    the_game.teams[i].name = re.findall(r'<div class="team' + str(i + 1) + '-gradient">.*<img alt="(\w*\s?\w*)"', page)
+    the_game.teams[i].name = re.findall(r'<div class="team' + str(i + 1) + '-gradient">.*<img alt="(.*)" src', page)
     the_game.teams[i].name = the_game.teams[i].name[0]
     print('Team ' + str(i + 1) + ' name: ' + the_game.teams[i].name)
 
 # Find the url to all teams
 for i in range(the_game.team_count):
-    the_game.teams[i].url = re.findall(r'<div class="team' + str(i + 1) + '-gradient"><a href="(/\w*/\d*/\w*-?\w*)"', page)
+    the_game.teams[i].url = re.findall(r'<div class="team' + str(i + 1) + '-gradient"><a href="(/\w*/\d*/.*)"><img', page)
     the_game.teams[i].url = the_game.teams[i].url[0]
     the_game.teams[i].url = 'https://www.hltv.org' + the_game.teams[i].url
     print('Team ' + str(i + 1) + ' URL: ' + the_game.teams[i].url)
@@ -69,8 +69,8 @@ for i in range(the_game.team_count): # Open the URL to the teams one at a time
     page = page.decode('utf-8')
 
     # Get player names and URLs
-    player_names = re.findall(r'class="text-ellipsis">(\w*)</a>', page)
-    player_urls = re.findall(r'<a href="(/\w*/\d*/\w*-?\w*)"', page)
+    player_names = re.findall(r'class="text-ellipsis">(.*)</a>', page)
+    player_urls = re.findall(r'<a href="(/\w*/\d*/.*)" class', page)
     # Append hltv.org to all URLs
     for i2 in range(len(player_urls)):
         player_urls[i2] = 'https://www.hltv.org' + player_urls[i2]
@@ -90,7 +90,7 @@ for i in range(the_game.team_count): # Open the URL to the teams one at a time
         page = page.decode('utf-8')
         
         # Assign detailed stats URLs
-        the_game.teams[i].players[i2].stats_url = re.findall(r'<a href="(/\w*/\w*/\d*/\w*-?\w*)".*Complete statistics for', page)
+        the_game.teams[i].players[i2].stats_url = re.findall(r'<a href="(/\w*/\w*/\d*/.*)" class', page)
         the_game.teams[i].players[i2].stats_url = the_game.teams[i].players[i2].stats_url[0]
         the_game.teams[i].players[i2].stats_url = 'https://www.hltv.org' + the_game.teams[i].players[i2].stats_url
         print('Player ' + str(i2 + 1) + ' detailed URL: ' + the_game.teams[i].players[i2].stats_url)
@@ -102,7 +102,7 @@ for i in range(the_game.team_count): # Open the URL to the teams one at a time
 
         # Grab player stats
         # Grab kills
-        the_game.teams[i].players[i2].kills = re.findall(r'<div class="stats-row"><span>Total kills</span><span>(\d*)', page, re.I)
+        the_game.teams[i].players[i2].kills = re.findall(r'<div class="stats-row"><span>total kills</span><span>(\d*)', page, re.I)
         the_game.teams[i].players[i2].kills = int(the_game.teams[i].players[i2].kills[0])
         print('Player ' + str(i2 + 1) + ' kills: ' + str(the_game.teams[i].players[i2].kills))
 
