@@ -140,10 +140,10 @@ def check_team_alive_and_update(team_number):
         return
 
 # Changes player status of team to be alive for the next round
-def revive_team(team_number):
-    the_game.teams[team_number].alive = True
-    for player_number in range(the_game.teams[team_number].player_count):
-        the_game.teams[team_number].players[player_number].alive = True
+def revive_all_teams():
+    for team_number in range(the_game.team_count):
+        for player_number in range(the_game.teams[team_number].player_count):
+            the_game.teams[team_number].players[player_number].alive = True
 
 # Resets the won and lost rounds for a new trial to take place
 def reset_team_rounds():
@@ -274,9 +274,13 @@ for i in range(the_game.team_count): # Open the URL to the teams one at a time
         #print('Player ' + str(i2 + 1) + ' Inverse HLTV Rating: ' + str(the_game.teams[i].players[i2].inv_hltv_rating))
         
         #print()
-print('Starting the simulations')
-                
+
+# Get certain variables initialized before the simulation
+required_won_rounds = 16
 simulations = 3 # Go through kdr, kpr, and hltv_rating simulations
+        
+print('Starting the simulations')
+# Starting the simulations
 for current_simulation in range(simulations):
     if (current_simulation == 0):
         for i in range(the_game.team_count):
@@ -296,17 +300,32 @@ for current_simulation in range(simulations):
 
     print()
     calculate_player_range()
-    print_all_player_stats()
+    #print_all_player_stats()
     print('Current Simulation: ' + str(current_simulation))
 
     # Start the simulation
     
-    # Roll a positive or negative value and select a player for the kill
-    positive = random.uniform(0, 1)
-    negative = random.uniform(0, 1)
-    for i in range(the_game.team_count):
-        for i2 in range(the_game.teams[i].player_count):
-            if ((positive >= the_game.teams[i].players[i2].lower_positive_range) and (positive <= the_game.teams[i].players[i2].upper_positive_range)):
-                print('Positive: ' + str(positive))
-                print('Team ' + str(i + 1) + ' Player ' + str(i2 + 1) + ' Lower Positive Range: ' + str(the_game.teams[i].players[i2].lower_positive_range))
-                print('Team ' + str(i + 1) + ' Player ' + str(i2 + 1) + ' Upper Positive Range: ' + str(the_game.teams[i].players[i2].upper_positive_range))
+    while (the_game.teams[0].alive == True and the_game.teams[1].alive == True):
+        # Roll a positive or negative value and select a player for the kill
+        positive = random.uniform(0, 1)
+        negative = random.uniform(0, 1)
+        for i in range(the_game.team_count):
+            for i2 in range(the_game.teams[i].player_count):
+                if ((positive >= the_game.teams[i].players[i2].lower_positive_range) and (positive <= the_game.teams[i].players[i2].upper_positive_range)):
+                    print (the_game.teams[i].players[i2].name + ' killed')
+                    # Select a player for death
+                    if (i == 0): # Assuming that there are only two teams
+                        other_team_number = 1
+                    else:
+                        other_team_number = 0
+                    for player_number in range(the_game.teams[other_team_number].player_count):
+                        if ((negative >= the_game.teams[other_team_number].players[player_number].lower_negative_range) and (negative <= the_game.teams[other_team_number].players[player_number].upper_negative_range)):
+                            print (the_game.teams[other_team_number].players[player_number].name)
+                            kill_player(other_team_number, player_number)
+                            check_team_alive_and_update(other_team_number)
+                            #print_all_player_stats()
+                            break
+                    break
+    for i in range(2):
+        print (the_game.teams[i].won_rounds)
+    revive_all_teams()
