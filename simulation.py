@@ -278,7 +278,6 @@ print('Starting the simulations')
                 
 simulations = 3 # Go through kdr, kpr, and hltv_rating simulations
 for current_simulation in range(simulations):
-    print('Current Simulation: ' + str(current_simulation))
     if (current_simulation == 0):
         for i in range(the_game.team_count):
             for i2 in range(the_game.teams[i].player_count):
@@ -297,83 +296,17 @@ for current_simulation in range(simulations):
 
     print()
     calculate_player_range()
-   # print_all_player_stats()
+    print_all_player_stats()
+    print('Current Simulation: ' + str(current_simulation))
 
-    trials = 10000
-    required_bestof = math.floor(0.5 * the_game.bestof) + 1
-    required_won_rounds = math.floor(0.5 * the_game.rounds) + 1
-    # Top level trials
-    for current_trial in range(trials):
-        print('current_trial: ' + str(current_trial))
-        
-        # Top level bestof
-        for current_bestof in range(required_bestof):
-            print('current_bestof: ' + str(current_bestof))
-            
-            # Current round wins
-            while (the_game.teams[0].won_rounds != required_won_rounds or the_game.teams[1].won_rounds != required_won_rounds):
-                while (the_game.teams[0].alive == True and the_game.teams[1].alive == True):
-                    # Roll for kills
-                    positive_roll = random.uniform(0, 1)
-                    negative_roll = random.uniform(0, 1)
-
-                    # Find who kills who
-                    for i in range(the_game.team_count):
-                        for i2 in range(the_game.teams[i].player_count):
-                            #print ('Before positive roll')
-                            if ((positive_roll > the_game.teams[i].players[i2].lower_positive_range) and (positive_roll < the_game.teams[i].players[i2].upper_positive_range)): # If a player gets a kill
-                                print(the_game.teams[i].players[i2].name + ' killed ')
-                                print(the_game.teams[0].won_rounds)
-                                print(the_game.teams[1].won_rounds)
-                                if(i == 0):
-                                    for i2 in range(the_game.teams[1].player_count):
-                                        if ((negative_roll > the_game.teams[1].players[i2].lower_negative_range) and (negative_roll < the_game.teams[1].players[i2].upper_negative_range)): # If a player gets a death
-                                            print(the_game.teams[1].players[i2].name)
-                                            print()
-                                            kill_player(1, i2)
-                                            check_team_alive_and_update(1)
-                                            break
-                                elif(i == 1):
-                                    for i2 in range(the_game.teams[0].player_count):
-                                        if ((negative_roll > the_game.teams[0].players[i2].lower_negative_range) and (negative_roll < the_game.teams[0].players[i2].upper_negative_range)): # If a player gets a death
-                                            print(the_game.teams[0].players[i2].name)
-                                            print()
-                                            kill_player(0, i2)
-                                            check_team_alive_and_update(0)
-                                            break
-                        break
-                    break
-
-                revive_team(0)
-                revive_team(1)
-                # Check for Overtime
-                if ((the_game.teams[0].won_rounds == math.floor(0.5 * the_game.rounds)) and (the_game.teams[1].won_rounds == math.floor(0.5 * the_game.rounds))): # Overtime. Hard coded for two teams but I don't care
-                        the_game.rounds += 10
-
-            # Increment match count
-            for i in range(the_game.team_count):
-                print('the_game.teams[' + str(i) + '].won_rounds: ' + str(the_game.teams[i].won_rounds))
-                if (the_game.teams[i].won_rounds == required_won_rounds):
-                    reset_team_rounds()
-                    the_game.teams[i].won_matches += 1
-                    if (i == 0):
-                        the_game.teams[1].lost_matches += 1
-                    elif (i == 1):
-                        the_game.teams[0].lost_matches += 1
-                        
-        # Increment trial count
-        for i in range(the_game.team_count):
-            print('the_game.teams[' + str(i) + '].won_matches: ' + str(the_game.teams[i].won_matches))
-            if (the_game.teams[i].won_matches == required_bestof):
-                reset_team_matches()
-                the_game.teams[i].won_trials += 1
-                if (i == 0):
-                    the_game.teams[1].lost_trials += 1
-                elif (i == 1):
-                    the_game.teams[0].lost_trials += 1
-
+    # Start the simulation
+    
+    # Roll a positive or negative value and select a player for the kill
+    positive = random.uniform(0, 1)
+    negative = random.uniform(0, 1)
     for i in range(the_game.team_count):
-        print ('the_game.teams[' + str(i) + '].won_trials: ' + str(the_game.teams[i].won_trials))
-        print ('the_game.teams[' + str(i) + '].lost_trials: ' + str(the_game.teams[i].lost_trials))
-        
-    reset_team_trials()
+        for i2 in range(the_game.teams[i].player_count):
+            if ((positive >= the_game.teams[i].players[i2].lower_positive_range) and (positive <= the_game.teams[i].players[i2].upper_positive_range)):
+                print('Positive: ' + str(positive))
+                print('Team ' + str(i + 1) + ' Player ' + str(i2 + 1) + ' Lower Positive Range: ' + str(the_game.teams[i].players[i2].lower_positive_range))
+                print('Team ' + str(i + 1) + ' Player ' + str(i2 + 1) + ' Upper Positive Range: ' + str(the_game.teams[i].players[i2].upper_positive_range))
