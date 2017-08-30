@@ -5,6 +5,7 @@ import re # Regular expression parsing
 import urllib.request # Opening page URLs
 import math # Using the floor() function
 import numpy # Using nextafter() function
+import random # Roll for kills and deaths
 
 class player:
     def __init__(self):
@@ -30,6 +31,12 @@ class player:
         
 class team:
     def __init__(self):
+        self.win_percentage = [0.0, 0.0, 0.0]
+        self.lost_percentage = [0.0, 0.0, 0.0]
+        self.won_matches = 0
+        self.lost_matches = 0
+        self.won_trials = 0
+        self.lost_trials = 0
         self.won_rounds = 0
         self.lost_rounds = 0
         self.wins = 0
@@ -39,7 +46,7 @@ class team:
         self.players = [player() for i in range(self.player_count)]
         self.url = ' '
         self.total_negative = 0.0 # The addition of all negative on ONE team
-        self.team_alive = True
+        self.alive = True
 
 class game:
     def __init__(self):
@@ -53,9 +60,11 @@ class game:
 def connect_to_url(url, user_agent_spoof):
     req = urllib.request.Request(url, headers=user_agent_spoof)
     try:
+        print('Trying to open a URL...')
         page = urllib.request.urlopen(req)
+        print('URL opened successfully.')
     except:
-        print('The internet fucked up.')
+        print('The internet fucking failed.')
         quit()
     page = page.read()
     page = page.decode('utf-8')
@@ -72,21 +81,23 @@ def calculate_player_range():
     # Find total_positive and total_negative (for the teams)
     for i in range(the_game.team_count):
             for i2 in range(the_game.teams[i].player_count):
-                the_game.teams[i].total_negative += the_game.teams[i].players[i2].negative
-                total_positive += the_game.teams[i].players[i2].positive
+                if (the_game.teams[i].players[i2].alive == True):
+                    the_game.teams[i].total_negative += the_game.teams[i].players[i2].negative
+                    total_positive += the_game.teams[i].players[i2].positive
 
     # Find the lower and upper ranges for both negative and positive
-    print ('Total positive: ' + str(total_positive))
+    #print ('Total positive: ' + str(total_positive))
     for i in range(the_game.team_count):
-        print('Team ' + str(i + 1) + ' Total Negative: ' + str(the_game.teams[i].total_negative))
+        #print('Team ' + str(i + 1) + ' Total Negative: ' + str(the_game.teams[i].total_negative))
         negative_upper = 0.0
         for i2 in range(the_game.teams[i].player_count):
-            the_game.teams[i].players[i2].lower_negative_range = negative_upper
-            the_game.teams[i].players[i2].upper_negative_range = the_game.teams[i].players[i2].lower_negative_range + (the_game.teams[i].players[i2].negative / the_game.teams[i].total_negative)
-            negative_upper = numpy.nextafter(the_game.teams[i].players[i2].upper_negative_range, 1)
-            the_game.teams[i].players[i2].lower_positive_range = positive_upper
-            the_game.teams[i].players[i2].upper_positive_range = the_game.teams[i].players[i2].lower_positive_range + (the_game.teams[i].players[i2].positive / total_positive)
-            positive_upper = numpy.nextafter(the_game.teams[i].players[i2].upper_positive_range, 1)
+            if (the_game.teams[i].players[i2].alive == True):
+                the_game.teams[i].players[i2].lower_negative_range = negative_upper
+                the_game.teams[i].players[i2].upper_negative_range = the_game.teams[i].players[i2].lower_negative_range + (the_game.teams[i].players[i2].negative / the_game.teams[i].total_negative)
+                negative_upper = numpy.nextafter(the_game.teams[i].players[i2].upper_negative_range, 1)
+                the_game.teams[i].players[i2].lower_positive_range = positive_upper
+                the_game.teams[i].players[i2].upper_positive_range = the_game.teams[i].players[i2].lower_positive_range + (the_game.teams[i].players[i2].positive / total_positive)
+                positive_upper = numpy.nextafter(the_game.teams[i].players[i2].upper_positive_range, 1)
 
 # Print all stats for all players on all teams
 def print_all_player_stats():
@@ -111,12 +122,56 @@ def print_all_player_stats():
                 print('Team ' + str(i + 1) + ' Player ' + str(i2 + 1) + ' Upper Positive Range: ' + str(the_game.teams[i].players[i2].upper_positive_range))
                 print('Team ' + str(i + 1) + ' Player ' + str(i2 + 1) + ' Alive: ' + str(the_game.teams[i].players[i2].alive))
                 print()
+                
+# Function to check if a team is alive or dead. Update the class if the team is alive or dead.
+def check_team_alive_and_update(team_number):
+    for player_number in range(the_game.teams[team_number].player_count):
+        if(the_game.teams[team_number].players[player_number].alive == True):
+            the_game.teams[team_number].alive = True
+            return 
+    the_game.teams[team_number].alive = False
+    if (team_number == 0):
+        the_game.teams[0].lost_rounds += 1
+        the_game.teams[1].won_rounds += 1
+        return 
+    elif (team_number == 1):
+        the_game.teams[1].lost_rounds += 1
+        the_game.teams[0].won_rounds += 1
+        return
 
+# Changes player status of team to be alive for the next round
+def revive_team(team_number):
+    the_game.teams[team_number].alive = True
+    for player_number in range(the_game.teams[team_number].player_count):
+        the_game.teams[team_number].players[player_number].alive = True
+
+# Resets the won and lost rounds for a new trial to take place
+def reset_team_rounds():
+    for team_number in range(the_game.team_count):
+        the_game.teams[team_number].won_rounds = 0
+        the_game.teams[team_number].lost_rounds = 0
+
+def reset_team_matchs():
+    for team_number in range(the_game.team_count):
+        the_game.teams[team_number].won_matches = 0
+        the_game.teams[team_number].lost_matches = 0
+
+# Resets the won and lost trials to start a new simulation
+def reset_team_trials():
+    for team_number in range(the_game.team_count):
+        the_game.teams[team_number].won_trials = 0
+        the_game.teams[team_number].lost_trials = 0
+
+                
 # Function to kill a player. Run calculate_player_range() to find the new range of all players
 def kill_player(team_number, player_number):
     the_game.teams[team_number].players[player_number].alive = False
     the_game.teams[team_number].players[player_number].positive = 0.0
     the_game.teams[team_number].players[player_number].negative = 0.0
+    the_game.teams[team_number].players[player_number].lower_negative_range = 0.0
+    the_game.teams[team_number].players[player_number].upper_negative_range = 0.0
+    the_game.teams[team_number].players[player_number].lower_positive_range = 0.0
+    the_game.teams[team_number].players[player_number].upper_positive_range = 0.0    
     calculate_player_range()
 
 # Open the URL and save it to page
@@ -219,6 +274,7 @@ for i in range(the_game.team_count): # Open the URL to the teams one at a time
         #print('Player ' + str(i2 + 1) + ' Inverse HLTV Rating: ' + str(the_game.teams[i].players[i2].inv_hltv_rating))
         
         #print()
+print('Starting the simulations')
                 
 simulations = 3 # Go through kdr, kpr, and hltv_rating simulations
 for current_simulation in range(simulations):
@@ -241,17 +297,83 @@ for current_simulation in range(simulations):
 
     print()
     calculate_player_range()
-    print_all_player_stats()
-    '''            
+   # print_all_player_stats()
+
     trials = 10000
+    required_bestof = math.floor(0.5 * the_game.bestof) + 1
+    required_won_rounds = math.floor(0.5 * the_game.rounds) + 1
     # Top level trials
-    for current_trial in trials:
+    for current_trial in range(trials):
+        print('current_trial: ' + str(current_trial))
         
         # Top level bestof
-        for current_bestof in range(floor(0.5 * the_game.bestof) + 1):
+        for current_bestof in range(required_bestof):
+            print('current_bestof: ' + str(current_bestof))
             
             # Current round wins
-            for current_round in range(floor(0.5 * the_game.rounds) + 1):
-                if((the_game.teams[0].won_rounds == floor(0.5 the_game.rounds)) and (the_game.teams[1].won_rounds == floor(0.5 the_game.rounds))): # Hard coded for two teams but I don't care
-                    the_game.rounds += 10
-    ''' 
+            while (the_game.teams[0].won_rounds != required_won_rounds or the_game.teams[1].won_rounds != required_won_rounds):
+                while (the_game.teams[0].alive == True and the_game.teams[1].alive == True):
+                    # Roll for kills
+                    positive_roll = random.uniform(0, 1)
+                    negative_roll = random.uniform(0, 1)
+
+                    # Find who kills who
+                    for i in range(the_game.team_count):
+                        for i2 in range(the_game.teams[i].player_count):
+                            #print ('Before positive roll')
+                            if ((positive_roll > the_game.teams[i].players[i2].lower_positive_range) and (positive_roll < the_game.teams[i].players[i2].upper_positive_range)): # If a player gets a kill
+                                print(the_game.teams[i].players[i2].name + ' killed ')
+                                print(the_game.teams[0].won_rounds)
+                                print(the_game.teams[1].won_rounds)
+                                if(i == 0):
+                                    for i2 in range(the_game.teams[1].player_count):
+                                        if ((negative_roll > the_game.teams[1].players[i2].lower_negative_range) and (negative_roll < the_game.teams[1].players[i2].upper_negative_range)): # If a player gets a death
+                                            print(the_game.teams[1].players[i2].name)
+                                            print()
+                                            kill_player(1, i2)
+                                            check_team_alive_and_update(1)
+                                            break
+                                elif(i == 1):
+                                    for i2 in range(the_game.teams[0].player_count):
+                                        if ((negative_roll > the_game.teams[0].players[i2].lower_negative_range) and (negative_roll < the_game.teams[0].players[i2].upper_negative_range)): # If a player gets a death
+                                            print(the_game.teams[0].players[i2].name)
+                                            print()
+                                            kill_player(0, i2)
+                                            check_team_alive_and_update(0)
+                                            break
+                        break
+                    break
+
+                revive_team(0)
+                revive_team(1)
+                # Check for Overtime
+                if ((the_game.teams[0].won_rounds == math.floor(0.5 * the_game.rounds)) and (the_game.teams[1].won_rounds == math.floor(0.5 * the_game.rounds))): # Overtime. Hard coded for two teams but I don't care
+                        the_game.rounds += 10
+
+            # Increment match count
+            for i in range(the_game.team_count):
+                print('the_game.teams[' + str(i) + '].won_rounds: ' + str(the_game.teams[i].won_rounds))
+                if (the_game.teams[i].won_rounds == required_won_rounds):
+                    reset_team_rounds()
+                    the_game.teams[i].won_matches += 1
+                    if (i == 0):
+                        the_game.teams[1].lost_matches += 1
+                    elif (i == 1):
+                        the_game.teams[0].lost_matches += 1
+                        
+        # Increment trial count
+        for i in range(the_game.team_count):
+            print('the_game.teams[' + str(i) + '].won_matches: ' + str(the_game.teams[i].won_matches))
+            if (the_game.teams[i].won_matches == required_bestof):
+                reset_team_matches()
+                the_game.teams[i].won_trials += 1
+                if (i == 0):
+                    the_game.teams[1].lost_trials += 1
+                elif (i == 1):
+                    the_game.teams[0].lost_trials += 1
+
+    for i in range(the_game.team_count):
+        print ('the_game.teams[' + str(i) + '].won_trials: ' + str(the_game.teams[i].won_trials))
+        print ('the_game.teams[' + str(i) + '].lost_trials: ' + str(the_game.teams[i].lost_trials))
+        
+    reset_team_trials()
