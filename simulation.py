@@ -196,14 +196,22 @@ def kill_player(team_number, player_number, current_simulation):
 
 # Open the URL and save it to page
 url = input('Enter the HLTV URL: ')
+
+print()
+print('Getting team and player stats. This may take a few moments.')
+print()
+
 user_agent_spoof = {'User-Agent':'Mozilla/5.0'}
 page = connect_to_url(url, user_agent_spoof)
 # Create the game
 the_game = game()
 
-print()
-print('Getting team and player stats. This may take a few moments.')
-print()
+
+# Get the best of count
+bestof = re.findall(r'<div class="padding preformatted-text">Best of (\d)', page)
+bestof = bestof[0]
+the_game.bestof = int(bestof)
+
 # Find and save team names
 for i in range(the_game.team_count):
     the_game.teams[i].name = re.findall(r'<div class="team' + str(i + 1) + '-gradient">.*<img alt="(.*)" src', page)
@@ -301,8 +309,10 @@ required_won_matches = math.floor(0.5 * the_game.bestof + 1)
 required_won_rounds = math.floor(0.5 * the_game.rounds + 1)
 trials = 10000
 simulations = 3 # Go through kdr, kpr, and hltv_rating simulations
-        
+
+print()
 print('Starting the simulations')
+print('This is a best of ' + str(the_game.bestof))
 # Starting the simulations
 for current_simulation in range(simulations):
     print()
@@ -354,10 +364,8 @@ for current_simulation in range(simulations):
             if (the_game.teams[i].won_matches == required_won_matches):
                 the_game.teams[i].won_trials += 1
         reset_team_matches()
-    print('Team 0 won trials: ' + str(the_game.teams[0].won_trials))
-    print('Team 1 won trials: ' + str(the_game.teams[1].won_trials))
-    print('Team 0 win percentage: ' + str(the_game.teams[0].won_trials / trials))
-    print('Team 1 win percentage: ' + str(the_game.teams[1].won_trials / trials))
-    print('Current Simulation: ' + str(current_simulation))
+    print(the_game.teams[0].name + ' won ' + str(the_game.teams[0].won_trials) + ' trials.')
+    print(the_game.teams[1].name + ' won ' + str(the_game.teams[1].won_trials) + ' trials.')
+    print(the_game.teams[0].name + ' win percentage: ' + str(100 * the_game.teams[0].won_trials / trials))
+    print(the_game.teams[1].name + ' win percentage: ' + str(100 * the_game.teams[1].won_trials / trials))
     reset_team_trials()
-    c = input('Enter anything to continue')
