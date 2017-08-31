@@ -6,6 +6,7 @@ import urllib.request # Opening page URLs
 import math # Using the floor() function
 import numpy # Using nextafter() function
 import random # Roll for kills and deaths
+import sys
 
 class player:
     def __init__(self):
@@ -50,6 +51,7 @@ class team:
 
 class game:
     def __init__(self):
+        self.ties = 0
         self.bestof = 1
         self.rounds = 30
         self.team_count = 2
@@ -64,7 +66,7 @@ def connect_to_url(url, user_agent_spoof):
         page = urllib.request.urlopen(req)
         print('URL opened successfully.')
     except:
-        print('The internet fucking failed.')
+        print('Failed to connect to: ' + url)
         quit()
     page = page.read()
     page = page.decode('utf-8')
@@ -178,6 +180,7 @@ def reset_team_matches():
 
 # Resets the won and lost trials to start a new simulation
 def reset_team_trials():
+    the_game.ties = 0
     for team_number in range(the_game.team_count):
         the_game.teams[team_number].won_trials = 0
         the_game.teams[team_number].lost_trials = 0
@@ -306,23 +309,36 @@ for i in range(the_game.team_count): # Open the URL to the teams one at a time
 # Get certain variables initialized before the simulation
 
 required_won_matches = math.floor(0.5 * the_game.bestof + 1)
-required_won_rounds = math.floor(0.5 * the_game.rounds + 1)
 trials = 10000
 simulations = 3 # Go through kdr, kpr, and hltv_rating simulations
+if (the_game.bestof % 2 == 0):
+    even_bestof = True
+else:
+    even_bestof = False
+the_game.ties = 0
 
 print()
 print('Starting the simulations')
 print('This is a best of ' + str(the_game.bestof))
+print(the_game.teams[0].name + ' vs. ' + the_game.teams[1].name)
+last_complete_percent = -1
 # Starting the simulations
 for current_simulation in range(simulations):
     print()
     calculate_player_range(current_simulation)
     #print_all_player_stats()
-    print('Current Simulation: ' + str(current_simulation))
+    if (current_simulation == 0):
+        print('Kill-Death Ratio Simulation:')
+    elif (current_simulation == 1):
+        print('Kill Per Round Simulation:')
+    elif (current_simulation == 2):
+        print('HLTV Rating Simulation:')
 
     # Start the simulation
     for current_trial in range(trials):
         while ((the_game.teams[0].won_matches != required_won_matches) and(the_game.teams[1].won_matches != required_won_matches)):
+            the_game.rounds = 30
+            required_won_rounds = math.floor(0.5 * the_game.rounds + 1)
             while ((the_game.teams[0].won_rounds != required_won_rounds) and (the_game.teams[1].won_rounds != required_won_rounds)):
                 while (the_game.teams[0].alive == True and the_game.teams[1].alive == True):
                     # Roll a positive or negative value and select a player for the kill
@@ -346,6 +362,14 @@ for current_simulation in range(simulations):
                                         #print_all_player_stats()
                                         break
                                 break
+                #print(the_game.teams[0].name + ' won ' + str(the_game.teams[0].won_rounds) + ' rounds.')
+                #print(the_game.teams[1].name + ' won ' + str(the_game.teams[1].won_rounds) + ' rounds.')
+                if ((the_game.teams[0].won_rounds == (required_won_rounds - 1)) and (the_game.teams[1].won_rounds == (required_won_rounds - 1))):
+                    #print(the_game.teams[0].name + ' won ' + str(the_game.teams[0].won_rounds) + ' rounds.')
+                    #print(the_game.teams[1].name + ' won ' + str(the_game.teams[1].won_rounds) + ' rounds.')
+                    #c = input('Enter to continue')
+                    the_game.rounds += 6
+                    required_won_rounds = math.floor(0.5 * the_game.rounds + 1)
                 for i in range(2):
                     #print (the_game.teams[i].won_rounds)
                     revive_all_teams(current_simulation)
@@ -358,14 +382,27 @@ for current_simulation in range(simulations):
                 if (the_game.teams[i].won_rounds == required_won_rounds):
                     the_game.teams[i].won_matches += 1
             reset_team_rounds()
-            #print('Team 0 won matches: ' + str(the_game.teams[0].won_matches))
-            #print('Team 1 won matches: ' + str(the_game.teams[1].won_matches))
+            #print ('Team 0 won matches: ' + str(the_game.teams[0].won_matches))
+            #print ('Team 1 won matches: ' + str(the_game.teams[1].won_matches))
+            if (even_bestof == True and (the_game.teams[0].won_matches == the_game.teams[1].won_matches)):
+                the_game.ties += 1
+                break
         for i in range(the_game.team_count):
             if (the_game.teams[i].won_matches == required_won_matches):
                 the_game.teams[i].won_trials += 1
         reset_team_matches()
+        percent_complete = str(round(100 * (current_trial / trials)))
+        if (percent_complete != last_complete_percent):
+            sys.stdout.write('\r' + percent_complete + '% Complete')
+            sys.stdout.flush()
+        last_complete_percent = percent_complete
+    print()
     print(the_game.teams[0].name + ' won ' + str(the_game.teams[0].won_trials) + ' trials.')
     print(the_game.teams[1].name + ' won ' + str(the_game.teams[1].won_trials) + ' trials.')
-    print(the_game.teams[0].name + ' win percentage: ' + str(100 * the_game.teams[0].won_trials / trials))
-    print(the_game.teams[1].name + ' win percentage: ' + str(100 * the_game.teams[1].won_trials / trials))
+    if (even_bestof == True):
+        print('Ties: ' + str(the_game.ties))
+    print(the_game.teams[0].name + ' win percentage: ' + str(100 * the_game.teams[0].won_trials / trials) + '%')
+    print(the_game.teams[1].name + ' win percentage: ' + str(100 * the_game.teams[1].won_trials / trials) + '%')
+    if (even_bestof == True):
+        print('Tie percentage: ' + str(100 * (the_game.ties / trials)) + '%')
     reset_team_trials()
