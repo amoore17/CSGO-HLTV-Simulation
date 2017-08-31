@@ -62,12 +62,13 @@ class game:
 def connect_to_url(url, user_agent_spoof):
     req = urllib.request.Request(url, headers=user_agent_spoof)
     try:
-        print('Trying to open a URL...')
+        print('Trying to connect to ' + url)
         page = urllib.request.urlopen(req)
         print('URL opened successfully.')
+        print()
     except:
         print('Failed to connect to: ' + url)
-        quit()
+        print()
     page = page.read()
     page = page.decode('utf-8')
     return page
@@ -205,10 +206,12 @@ print('Getting team and player stats. This may take a few moments.')
 print()
 
 user_agent_spoof = {'User-Agent':'Mozilla/5.0'}
-page = connect_to_url(url, user_agent_spoof)
+try:
+    page = connect_to_url(url, user_agent_spoof)
+except:
+    quit()
 # Create the game
 the_game = game()
-
 
 # Get the best of count
 bestof = re.findall(r'<div class="padding preformatted-text">Best of (\d)', page)
@@ -233,7 +236,10 @@ for i in range(the_game.team_count):
 # Team loop
 # Get player stats
 for i in range(the_game.team_count): # Open the URL to the teams one at a time
-    page = connect_to_url(the_game.teams[i].url, user_agent_spoof)
+    try:
+        page = connect_to_url(the_game.teams[i].url, user_agent_spoof)
+    except:
+        quit()
 
     # Get player names and URLs
     player_names = re.findall(r'class="text-ellipsis">(.*)</a>', page)
@@ -252,7 +258,11 @@ for i in range(the_game.team_count): # Open the URL to the teams one at a time
         #print('Player ' + str(i2 + 1) + ' URL: ' + the_game.teams[i].players[i2].url)
         
         # Open main player URLs and assign the URL to their detailed stats
-        page = connect_to_url(the_game.teams[i].players[i2].url, user_agent_spoof)
+        try:
+            page = connect_to_url(the_game.teams[i].players[i2].url, user_agent_spoof)
+        except:
+            print('Could be possibly missing a player.')
+            quit()
         
         # Assign detailed stats URLs
         the_game.teams[i].players[i2].stats_url = re.findall(r'<a href="(/\w*/\w*/\d*/.*)" class', page)
@@ -261,7 +271,11 @@ for i in range(the_game.team_count): # Open the URL to the teams one at a time
         #print('Player ' + str(i2 + 1) + ' detailed URL: ' + the_game.teams[i].players[i2].stats_url)
 
         # Open the detailed stats URLs
-        page = connect_to_url(the_game.teams[i].players[i2].stats_url, user_agent_spoof)
+        try:
+            page = connect_to_url(the_game.teams[i].players[i2].stats_url, user_agent_spoof)
+        except:
+            print('Could be possibly missing a player.')
+            quit()
 
         # Grab player stats
         # Grab kills
