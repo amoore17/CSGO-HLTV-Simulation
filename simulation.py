@@ -40,9 +40,7 @@ def calculate_player_range(current_simulation, the_game):
                     total_positive += the_game.teams[i].players[i2].positive
 
     # Find the lower and upper ranges for both negative and positive
-    #print ('Total positive: ' + str(total_positive))
     for i in range(the_game.team_count):
-        #print('Team ' + str(i + 1) + ' Total Negative: ' + str(the_game.teams[i].total_negative))
         negative_upper = 0.0
         for i2 in range(the_game.teams[i].player_count):
             if (the_game.teams[i].players[i2].alive == True):
@@ -172,14 +170,12 @@ the_game.bestof = int(bestof)
 for i in range(the_game.team_count):
     the_game.teams[i].name = re.findall(r'<div class="team' + str(i + 1) + '-gradient">.*<img alt="(.*)" src', page)
     the_game.teams[i].name = the_game.teams[i].name[0]
-    #print('Team ' + str(i + 1) + ' name: ' + the_game.teams[i].name)
 
 # Find the url to all teams
 for i in range(the_game.team_count):
     the_game.teams[i].url = re.findall(r'<div class="team' + str(i + 1) + '-gradient"><a href="(/\w*/\d*/.*)"><img', page)
     the_game.teams[i].url = the_game.teams[i].url[0]
     the_game.teams[i].url = 'https://www.hltv.org' + the_game.teams[i].url
-    #print('Team ' + str(i + 1) + ' URL: ' + the_game.teams[i].url)
 
 #print()
 
@@ -204,8 +200,6 @@ for i in range(the_game.team_count): # Open the URL to the teams one at a time
         # Assign names and main page URLs
         the_game.teams[i].players[i2].name = player_names[i2]
         the_game.teams[i].players[i2].url = player_urls[i2]
-        #print('Player ' + str(i2 + 1) + ' name: ' + the_game.teams[i].players[i2].name)
-        #print('Player ' + str(i2 + 1) + ' URL: ' + the_game.teams[i].players[i2].url)
 
         # Open main player URLs and assign the URL to their detailed stats
         try:
@@ -218,7 +212,6 @@ for i in range(the_game.team_count): # Open the URL to the teams one at a time
         the_game.teams[i].players[i2].stats_url = re.findall(r'<a href="(/\w*/\w*/\d*/.*)" class', page)
         the_game.teams[i].players[i2].stats_url = the_game.teams[i].players[i2].stats_url[0]
         the_game.teams[i].players[i2].stats_url = 'https://www.hltv.org' + the_game.teams[i].players[i2].stats_url
-        #print('Player ' + str(i2 + 1) + ' detailed URL: ' + the_game.teams[i].players[i2].stats_url)
 
         # Open the detailed stats URLs
         try:
@@ -250,23 +243,18 @@ for i in range(the_game.team_count): # Open the URL to the teams one at a time
 
         # Calculate kdr
         the_game.teams[i].players[i2].kdr = the_game.teams[i].players[i2].kills / the_game.teams[i].players[i2].deaths
-        #print('Player ' + str(i2 + 1) + ' KDR: ' + str(the_game.teams[i].players[i2].kdr))
 
         # Calculate dkr
         the_game.teams[i].players[i2].dkr = the_game.teams[i].players[i2].deaths / the_game.teams[i].players[i2].kills
-        #print('Player ' + str(i2 + 1) + ' DKR: ' + str(the_game.teams[i].players[i2].dkr))
 
         # Calculate kpr
         the_game.teams[i].players[i2].kpr = the_game.teams[i].players[i2].kills / the_game.teams[i].players[i2].rounds
-        #print('Player ' + str(i2 + 1) + ' KPR: ' + str(the_game.teams[i].players[i2].kpr))
 
         # Calculate dpr
         the_game.teams[i].players[i2].dpr = the_game.teams[i].players[i2].deaths / the_game.teams[i].players[i2].rounds
-        #print('Player ' + str(i2 + 1) + ' DPR: ' + str(the_game.teams[i].players[i2].dpr))
 
         # Calculate inv_hltv_rating
         the_game.teams[i].players[i2].inv_hltv_rating = pow(the_game.teams[i].players[i2].hltv_rating, (-1))
-        #print('Player ' + str(i2 + 1) + ' Inverse HLTV Rating: ' + str(the_game.teams[i].players[i2].inv_hltv_rating))
 
         #print()
 
@@ -290,7 +278,6 @@ last_complete_percent = -1
 for current_simulation in range(simulations):
     print()
     calculate_player_range(current_simulation, the_game)
-    #print_all_player_stats()
     if (current_simulation == 0):
         print('Kill-Death Ratio Simulation:')
     elif (current_simulation == 1):
@@ -311,7 +298,6 @@ for current_simulation in range(simulations):
                     for i in range(the_game.team_count):
                         for i2 in range(the_game.teams[i].player_count):
                             if ((positive >= the_game.teams[i].players[i2].lower_positive_range) and (positive <= the_game.teams[i].players[i2].upper_positive_range)):
-                                #print (the_game.teams[i].players[i2].name + ' killed')
                                 # Select a player for death
                                 if (i == 0): # Assuming that there are only two teams
                                     other_team_number = 1
@@ -319,35 +305,20 @@ for current_simulation in range(simulations):
                                     other_team_number = 0
                                 for player_number in range(the_game.teams[other_team_number].player_count):
                                     if ((negative >= the_game.teams[other_team_number].players[player_number].lower_negative_range) and (negative <= the_game.teams[other_team_number].players[player_number].upper_negative_range)):
-                                        #print (the_game.teams[other_team_number].players[player_number].name)
                                         kill_player(other_team_number, player_number, current_simulation)
                                         check_team_alive_and_update(other_team_number)
-                                        #print('Team ' + str(other_team_number) + ' Alive: ' + str(the_game.teams[other_team_number].alive))
-                                        #print_all_player_stats()
                                         break
                                 break
-                #print(the_game.teams[0].name + ' won ' + str(the_game.teams[0].won_rounds) + ' rounds.')
-                #print(the_game.teams[1].name + ' won ' + str(the_game.teams[1].won_rounds) + ' rounds.')
                 if ((the_game.teams[0].won_rounds == (required_won_rounds - 1)) and (the_game.teams[1].won_rounds == (required_won_rounds - 1))):
-                    #print(the_game.teams[0].name + ' won ' + str(the_game.teams[0].won_rounds) + ' rounds.')
-                    #print(the_game.teams[1].name + ' won ' + str(the_game.teams[1].won_rounds) + ' rounds.')
-                    #c = input('Enter to continue')
                     the_game.rounds += 6
                     required_won_rounds = math.floor(0.5 * the_game.rounds + 1)
                 for i in range(2):
-                    #print (the_game.teams[i].won_rounds)
                     revive_all_teams(current_simulation)
                     calculate_player_range(current_simulation, the_game)
-                    #print_all_player_stats()
-            #print ('Team 0 won rounds: ' + str(the_game.teams[0].won_rounds))
-            #print ('Team 1 won rounds: ' + str(the_game.teams[1].won_rounds))
-            #print (required_won_rounds)
             for i in range(the_game.team_count):
                 if (the_game.teams[i].won_rounds == required_won_rounds):
                     the_game.teams[i].won_matches += 1
             reset_team_rounds()
-            #print ('Team 0 won matches: ' + str(the_game.teams[0].won_matches))
-            #print ('Team 1 won matches: ' + str(the_game.teams[1].won_matches))
             if (even_bestof == True and (the_game.teams[0].won_matches == the_game.teams[1].won_matches)):
                 the_game.ties += 1
                 break
