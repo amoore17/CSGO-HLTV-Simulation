@@ -7,57 +7,7 @@ import math # Using the floor() function
 import numpy # Using nextafter() function
 import random # Roll for kills and deaths
 import sys
-
-class player:
-    def __init__(self):
-        self.name = 'Kirk'
-        self.kills = 0
-        self.deaths = 0
-        self.rounds = 0
-        self.kdr = 0.0 # Kill-Death Ratio
-        self.dkr = 0.0 # Death-Kill Ratio
-        self.kpr = 0.0 # Kills Per Round
-        self.dpr = 0.0 # Deaths Per Round
-        self.hltv_rating = 0.0
-        self.inv_hltv_rating = 0.0
-        self.url = ' '
-        self.stats_url = ' '
-        self.negative = 0.0 # Either dkr, dpr, or inv_hltv_rating
-        self.positive = 0.0 # Either kdr, kpr, or hltv_rating
-        self.lower_negative_range = 0.0
-        self.upper_negative_range = 0.0
-        self.lower_positive_range = 0.0
-        self.upper_positive_range = 0.0
-        self.alive = True
-        
-class team:
-    def __init__(self):
-        self.win_percentage = [0.0, 0.0, 0.0]
-        self.lost_percentage = [0.0, 0.0, 0.0]
-        self.won_matches = 0
-        self.lost_matches = 0
-        self.won_trials = 0
-        self.lost_trials = 0
-        self.won_rounds = 0
-        self.lost_rounds = 0
-        self.wins = 0
-        self.losses = 0
-        self.name = 'A-Team'
-        self.player_count = 5
-        self.players = [player() for i in range(self.player_count)]
-        self.url = ' '
-        self.total_negative = 0.0 # The addition of all negative on ONE team
-        self.alive = True
-
-class game:
-    def __init__(self):
-        self.ties = 0
-        self.bestof = 1
-        self.rounds = 30
-        self.team_count = 2
-        self.teams = [team() for i in range(self.team_count)]
-        self.score = ['0-0']
-        self.score_index = 0
+from simulationFunctions import *
 
 def connect_to_url(url, user_agent_spoof):
     req = urllib.request.Request(url, headers=user_agent_spoof)
@@ -74,7 +24,7 @@ def connect_to_url(url, user_agent_spoof):
     return page
 
 # Calculate the likelihood that a player is to get a kill or die
-def calculate_player_range(current_simulation):
+def calculate_player_range(current_simulation, the_game):
     assign_positive_negative(current_simulation)
     negative_upper = 0.0 # The current number to set the next player's lower_negative_range
     positive_upper = 0.0 # The current number to set the next player's lower_positive_range
@@ -143,18 +93,18 @@ def assign_positive_negative(current_simulation):
             for i2 in range(the_game.teams[i].player_count):
                 the_game.teams[i].players[i2].negative = the_game.teams[i].players[i2].inv_hltv_rating
                 the_game.teams[i].players[i2].positive = the_game.teams[i].players[i2].hltv_rating
-                
+
 # Function to check if a team is alive or dead. Update the class if the team is alive or dead.
 def check_team_alive_and_update(team_number):
     for player_number in range(the_game.teams[team_number].player_count):
         if(the_game.teams[team_number].players[player_number].alive == True):
             the_game.teams[team_number].alive = True
-            return 
+            return
     the_game.teams[team_number].alive = False
     if (team_number == 0):
         the_game.teams[0].lost_rounds += 1
         the_game.teams[1].won_rounds += 1
-        return 
+        return
     elif (team_number == 1):
         the_game.teams[1].lost_rounds += 1
         the_game.teams[0].won_rounds += 1
@@ -166,7 +116,7 @@ def revive_all_teams(current_simulation):
         the_game.teams[team_number].alive = True
         for player_number in range(the_game.teams[team_number].player_count):
             the_game.teams[team_number].players[player_number].alive = True
-    calculate_player_range(current_simulation)
+    calculate_player_range(current_simulation, the_game)
 
 # Resets the won and lost rounds for a new trial to take place
 def reset_team_rounds():
@@ -186,7 +136,7 @@ def reset_team_trials():
         the_game.teams[team_number].won_trials = 0
         the_game.teams[team_number].lost_trials = 0
 
-                
+
 # Function to kill a player. Run calculate_player_range() to find the new range of all players
 def kill_player(team_number, player_number, current_simulation):
     the_game.teams[team_number].players[player_number].alive = False
@@ -195,8 +145,8 @@ def kill_player(team_number, player_number, current_simulation):
     the_game.teams[team_number].players[player_number].lower_negative_range = 0.0
     the_game.teams[team_number].players[player_number].upper_negative_range = 0.0
     the_game.teams[team_number].players[player_number].lower_positive_range = 0.0
-    the_game.teams[team_number].players[player_number].upper_positive_range = 0.0    
-    calculate_player_range(current_simulation)
+    the_game.teams[team_number].players[player_number].upper_positive_range = 0.0
+    calculate_player_range(current_simulation, the_game)
 
 # Open the URL and save it to page
 url = input('Enter the HLTV URL: ')
@@ -256,14 +206,14 @@ for i in range(the_game.team_count): # Open the URL to the teams one at a time
         the_game.teams[i].players[i2].url = player_urls[i2]
         #print('Player ' + str(i2 + 1) + ' name: ' + the_game.teams[i].players[i2].name)
         #print('Player ' + str(i2 + 1) + ' URL: ' + the_game.teams[i].players[i2].url)
-        
+
         # Open main player URLs and assign the URL to their detailed stats
         try:
             page = connect_to_url(the_game.teams[i].players[i2].url, user_agent_spoof)
         except:
             print('Could be possibly missing a player.')
             quit()
-        
+
         # Assign detailed stats URLs
         the_game.teams[i].players[i2].stats_url = re.findall(r'<a href="(/\w*/\w*/\d*/.*)" class', page)
         the_game.teams[i].players[i2].stats_url = the_game.teams[i].players[i2].stats_url[0]
@@ -317,13 +267,13 @@ for i in range(the_game.team_count): # Open the URL to the teams one at a time
         # Calculate inv_hltv_rating
         the_game.teams[i].players[i2].inv_hltv_rating = pow(the_game.teams[i].players[i2].hltv_rating, (-1))
         #print('Player ' + str(i2 + 1) + ' Inverse HLTV Rating: ' + str(the_game.teams[i].players[i2].inv_hltv_rating))
-        
+
         #print()
 
 # Get certain variables initialized before the simulation
 
 required_won_matches = math.floor(0.5 * the_game.bestof + 1)
-trials = 10000
+trials = 100
 simulations = 3 # Go through kdr, kpr, and hltv_rating simulations
 if (the_game.bestof % 2 == 0):
     even_bestof = True
@@ -339,7 +289,7 @@ last_complete_percent = -1
 # Starting the simulations
 for current_simulation in range(simulations):
     print()
-    calculate_player_range(current_simulation)
+    calculate_player_range(current_simulation, the_game)
     #print_all_player_stats()
     if (current_simulation == 0):
         print('Kill-Death Ratio Simulation:')
@@ -387,7 +337,7 @@ for current_simulation in range(simulations):
                 for i in range(2):
                     #print (the_game.teams[i].won_rounds)
                     revive_all_teams(current_simulation)
-                    calculate_player_range(current_simulation)
+                    calculate_player_range(current_simulation, the_game)
                     #print_all_player_stats()
             #print ('Team 0 won rounds: ' + str(the_game.teams[0].won_rounds))
             #print ('Team 1 won rounds: ' + str(the_game.teams[1].won_rounds))
