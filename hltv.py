@@ -41,6 +41,7 @@ class team:
 
 class game:
     def __init__(self):
+        self.tie_percentage = [0.0, 0.0, 0.0]
         self.ties = 0
         self.bestof = 1
         self.rounds = 30
@@ -48,3 +49,4 @@ class game:
         self.teams = [team() for i in range(self.team_count)]
         self.score = ['0-0']
         self.score_index = 0
+        self.data = ''

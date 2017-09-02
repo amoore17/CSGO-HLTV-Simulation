@@ -1,6 +1,7 @@
 import numpy # Using nextafter() function
 import re # Regular expression parsing
 import urllib.request # Opening page URLs
+import pyexcel
 
 # Print all stats for all players on all teams
 def print_all_player_stats(the_game):
@@ -125,12 +126,51 @@ def kill_player(the_game, team_number, player_number, current_simulation):
     the_game.teams[team_number].players[player_number].upper_positive_range = 0.0
     calculate_player_range(current_simulation, the_game)
 
+def date_converter(date):
+    day = re.findall(r'(\d*)\w*', date)
+    day = day[0]
+    month = re.findall(r'of (\w*) ', date)
+    month = month[0]
+    if (month == 'January'):
+        month = '1'
+    elif (month == 'February'):
+        month = '2'
+    elif (month == 'March'):
+        month = '3'
+    elif (month == 'April'):
+        month = '4'
+    elif (month == 'May'):
+        month = '5'
+    elif (month == 'June'):
+        month = '6'
+    elif (month == 'July'):
+        month = '7'
+    elif (month == 'August'):
+        month = '8'
+    elif (month == 'September'):
+        month = '9'
+    elif (month == 'October'):
+        month = '10'
+    elif (month == 'November'):
+        month = '11'
+    elif (month == 'December'):
+        month = '12'
+    year = re.findall(r'.* of \w* (\d*)', date)
+    year = year[0]
+    year = year[2:4]
+    date = month + '/' + day + '/' + year
+    return date
 
 def get_all_game_data(the_game, user_agent_spoof, page):
     # Get the best of count
     bestof = re.findall(r'<div class="padding preformatted-text">Best of (\d)', page)
     bestof = bestof[0]
-    the_game.bestof = int(bestof)
+    bestof = int(bestof)
+    the_game.bestof = bestof
+
+    the_game.date = re.findall(r'<div class="date" data-time-format="do &apos;of&apos; MMMM Y" data-unix="\d*">(.*)</div', page)
+    the_game.date = the_game.date[0]
+    the_game.date = date_converter(the_game.date)
 
     # Find and save team names
     for i in range(the_game.team_count):
@@ -212,7 +252,7 @@ def get_all_game_data(the_game, user_agent_spoof, page):
 def connect_to_url(url, user_agent_spoof):
     req = urllib.request.Request(url, headers=user_agent_spoof)
     try:
-        print('Trying to connect to ' + url)
+        print('Trying to connect to: ' + url)
         page = urllib.request.urlopen(req)
         print('URL opened successfully.')
         print()
@@ -222,3 +262,41 @@ def connect_to_url(url, user_agent_spoof):
     page = page.read()
     page = page.decode('utf-8')
     return page
+
+def export_to_ods(the_game):
+    sheet = pyexcel.get_sheet(file_name='SimulationsCopy.ods')
+    if (the_game.teams[0].win_percentage[0] > the_game.teams[1].win_percentage[0]):
+        kdr_team_win = the_game.teams[0].name
+    elif (the_game.teams[1].win_percentage[0] > the_game.teams[0].win_percentage[0]):
+        kdr_team_win = the_game.teams[1].name
+    else:
+        kdr_team_win = 'Either'
+
+    if (the_game.teams[0].win_percentage[1] > the_game.teams[1].win_percentage[1]):
+        kpr_team_win = the_game.teams[0].name
+    elif (the_game.teams[1].win_percentage[1] > the_game.teams[0].win_percentage[1]):
+        kpr_team_win = the_game.teams[1].name
+    else:
+        kpr_team_win = 'Either'
+
+    if (the_game.teams[0].win_percentage[2] > the_game.teams[1].win_percentage[2]):
+        hltv_rating_team_win = the_game.teams[0].name
+    elif (the_game.teams[1].win_percentage[2] > the_game.teams[0].win_percentage[2]):
+        hltv_rating_team_win = the_game.teams[1].name
+    else:
+        hltv_rating_team_win = 'Either'
+
+    if ((the_game.bestof % 2) != 0):
+        sheet.row += [the_game.bestof, the_game.date, the_game.teams[0].name + ' vs. ' + the_game.teams[1].name,
+        str(the_game.teams[0].win_percentage[0]) + ' - ' + str(the_game.teams[1].win_percentage[0]), str(the_game.teams[0].win_percentage[1]) + ' - ' + str(the_game.teams[1].win_percentage[1]),
+        str(the_game.teams[0].win_percentage[2]) + ' - ' + str(the_game.teams[1].win_percentage[2]), kdr_team_win, kpr_team_win, hltv_rating_team_win]
+        sheet.save_as('SimulationsCopy.ods')
+        print(sheet)
+    else:
+        sheet.row += [the_game.bestof, the_game.date, the_game.teams[0].name + ' vs. ' + the_game.teams[1].name,
+        str(the_game.teams[0].win_percentage[0]) + ' - ' + str(the_game.teams[1].win_percentage[0]) + ' - ' + str(the_game.tie_percentage[0]),
+        str(the_game.teams[0].win_percentage[1]) + ' - ' + str(the_game.teams[1].win_percentage[1]) + ' - ' + str(the_game.tie_percentage[0]),
+        str(the_game.teams[0].win_percentage[2]) + ' - ' + str(the_game.teams[1].win_percentage[2]) + ' - ' + str(the_game.tie_percentage[0]),
+        kdr_team_win, kpr_team_win, hltv_rating_team_win]
+        sheet.save_as('SimulationsCopy.ods')
+        print(sheet)

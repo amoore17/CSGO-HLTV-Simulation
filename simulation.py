@@ -10,7 +10,9 @@ from simulationFunctions import *
 the_game = game()
 
 # Open the URL and save it to page
+print()
 url = input('Enter the HLTV URL: ')
+trials = int(input("Enter the number of trials: "))
 
 print()
 print('Getting team and player stats. This may take a few moments.')
@@ -23,7 +25,6 @@ get_all_game_data(the_game, user_agent_spoof, page)
 
 # Get certain variables initialized before the simulation
 required_won_matches = math.floor(0.5 * the_game.bestof + 1)
-trials = 100
 simulations = 3 # Go through kdr, kpr, and hltv_rating simulations
 if (the_game.bestof % 2 == 0):
     even_bestof = True
@@ -88,18 +89,31 @@ for current_simulation in range(simulations):
             if (the_game.teams[i].won_matches == required_won_matches):
                 the_game.teams[i].won_trials += 1
         reset_team_matches(the_game)
-        percent_complete = str(round(100 * (current_trial / trials)))
+        percent_complete = str(math.floor(100 * ((current_trial + 1) / trials)))
         if (percent_complete != last_complete_percent):
-            sys.stdout.write('\r' + percent_complete + '% Complete')
+            sys.stdout.write('\r' + str(current_trial + 1) + ' / ' + str(trials) + ' --- ' + percent_complete + '% Complete')
             sys.stdout.flush()
         last_complete_percent = percent_complete
+
     print()
     print(the_game.teams[0].name + ' won ' + str(the_game.teams[0].won_trials) + ' trials.')
     print(the_game.teams[1].name + ' won ' + str(the_game.teams[1].won_trials) + ' trials.')
     if (even_bestof == True):
         print('Ties: ' + str(the_game.ties))
-    print(the_game.teams[0].name + ' win percentage: ' + str(100 * the_game.teams[0].won_trials / trials) + '%')
-    print(the_game.teams[1].name + ' win percentage: ' + str(100 * the_game.teams[1].won_trials / trials) + '%')
+    the_game.tie_percentage[current_simulation] = 100 * (the_game.ties / trials)
+    the_game.teams[0].win_percentage[current_simulation] = 100 * the_game.teams[0].won_trials / trials
+    the_game.teams[1].win_percentage[current_simulation] = 100 * the_game.teams[1].won_trials / trials
+    print(the_game.teams[0].name + ' win percentage: ' + str(the_game.teams[0].win_percentage[current_simulation]) + '%')
+    print(the_game.teams[1].name + ' win percentage: ' + str(the_game.teams[1].win_percentage[current_simulation]) + '%')
     if (even_bestof == True):
-        print('Tie percentage: ' + str(100 * (the_game.ties / trials)) + '%')
+        print('Tie percentage: ' + str(the_game.tie_percentage[current_simulation]) + '%')
     reset_team_trials(the_game)
+answer = ''
+while (answer != 'y' and answer != 'n'):
+    print()
+    answer = input('Do you want to export to ODS? (y or n): ')
+if (answer == 'y'):
+    export_to_ods(the_game)
+else:
+    print()
+    quit()
