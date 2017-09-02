@@ -265,26 +265,54 @@ def connect_to_url(url, user_agent_spoof):
 
 def export_to_ods(the_game):
     sheet = pyexcel.get_sheet(file_name='SimulationsCopy.ods')
-    if (the_game.teams[0].win_percentage[0] > the_game.teams[1].win_percentage[0]):
-        kdr_team_win = the_game.teams[0].name
-    elif (the_game.teams[1].win_percentage[0] > the_game.teams[0].win_percentage[0]):
-        kdr_team_win = the_game.teams[1].name
-    else:
-        kdr_team_win = 'Either'
+    if ((the_game.bestof % 2) != 0):
+        if (the_game.teams[0].win_percentage[0] > the_game.teams[1].win_percentage[0]):
+            kdr_team_win = the_game.teams[0].name
+        elif (the_game.teams[1].win_percentage[0] > the_game.teams[0].win_percentage[0]):
+            kdr_team_win = the_game.teams[1].name
+        else:
+            kdr_team_win = 'Either'
 
-    if (the_game.teams[0].win_percentage[1] > the_game.teams[1].win_percentage[1]):
-        kpr_team_win = the_game.teams[0].name
-    elif (the_game.teams[1].win_percentage[1] > the_game.teams[0].win_percentage[1]):
-        kpr_team_win = the_game.teams[1].name
-    else:
-        kpr_team_win = 'Either'
+        if (the_game.teams[0].win_percentage[1] > the_game.teams[1].win_percentage[1]):
+            kpr_team_win = the_game.teams[0].name
+        elif (the_game.teams[1].win_percentage[1] > the_game.teams[0].win_percentage[1]):
+            kpr_team_win = the_game.teams[1].name
+        else:
+            kpr_team_win = 'Either'
 
-    if (the_game.teams[0].win_percentage[2] > the_game.teams[1].win_percentage[2]):
-        hltv_rating_team_win = the_game.teams[0].name
-    elif (the_game.teams[1].win_percentage[2] > the_game.teams[0].win_percentage[2]):
-        hltv_rating_team_win = the_game.teams[1].name
+        if (the_game.teams[0].win_percentage[2] > the_game.teams[1].win_percentage[2]):
+            hltv_rating_team_win = the_game.teams[0].name
+        elif (the_game.teams[1].win_percentage[2] > the_game.teams[0].win_percentage[2]):
+            hltv_rating_team_win = the_game.teams[1].name
+        else:
+            hltv_rating_team_win = 'Either'
     else:
-        hltv_rating_team_win = 'Either'
+        if ((the_game.tie_percentage[0] > the_game.teams[0].win_percentage[0]) and (the_game.tie_percentage[0] > the_game.teams[1].win_percentage[0])):
+            kdr_team_win = 'Tie'
+        elif (the_game.teams[0].win_percentage[0] > the_game.teams[1].win_percentage[0]):
+            kdr_team_win = the_game.teams[0].name
+        elif (the_game.teams[1].win_percentage[0] > the_game.teams[0].win_percentage[0]):
+            kdr_team_win = the_game.teams[1].name
+        else:
+            kdr_team_win = 'Either'
+
+        if ((the_game.tie_percentage[1] > the_game.teams[0].win_percentage[1]) and (the_game.tie_percentage[1] > the_game.teams[1].win_percentage[1])):
+            kpr_team_win = 'Tie'
+        elif (the_game.teams[0].win_percentage[1] > the_game.teams[1].win_percentage[1]):
+            kpr_team_win = the_game.teams[0].name
+        elif (the_game.teams[1].win_percentage[1] > the_game.teams[0].win_percentage[1]):
+            kpr_team_win = the_game.teams[1].name
+        else:
+            kpr_team_win = 'Either'
+
+        if ((the_game.tie_percentage[2] > the_game.teams[0].win_percentage[2]) and (the_game.tie_percentage[1] > the_game.teams[1].win_percentage[2])):
+            hltv_rating_team_win = 'Tie'
+        elif (the_game.teams[0].win_percentage[2] > the_game.teams[1].win_percentage[2]):
+            hltv_rating_team_win = the_game.teams[0].name
+        elif (the_game.teams[1].win_percentage[2] > the_game.teams[0].win_percentage[2]):
+            hltv_rating_team_win = the_game.teams[1].name
+        else:
+            hltv_rating_team_win = 'Either'
 
     if ((the_game.bestof % 2) != 0):
         sheet.row += [the_game.bestof, the_game.date, the_game.teams[0].name + ' vs. ' + the_game.teams[1].name,

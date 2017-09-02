@@ -32,7 +32,6 @@ else:
     even_bestof = False
 the_game.ties = 0
 
-print()
 print('Starting the simulations')
 print('This is a best of ' + str(the_game.bestof))
 print(the_game.teams[0].name + ' vs. ' + the_game.teams[1].name)
