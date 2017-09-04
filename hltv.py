@@ -41,6 +41,7 @@ class team:
 
 class game:
     def __init__(self):
+        self.match_score = ['0-0', '0-0', '0-0']
         self.tie_percentage = [0.0, 0.0, 0.0]
         self.ties = 0
         self.bestof = 1

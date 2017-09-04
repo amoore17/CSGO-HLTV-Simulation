@@ -317,7 +317,8 @@ def export_to_ods(the_game):
     if ((the_game.bestof % 2) != 0):
         sheet.row += [the_game.bestof, the_game.date, the_game.teams[0].name + ' vs. ' + the_game.teams[1].name,
         str(the_game.teams[0].win_percentage[0]) + ' - ' + str(the_game.teams[1].win_percentage[0]), str(the_game.teams[0].win_percentage[1]) + ' - ' + str(the_game.teams[1].win_percentage[1]),
-        str(the_game.teams[0].win_percentage[2]) + ' - ' + str(the_game.teams[1].win_percentage[2]), kdr_team_win, kpr_team_win, hltv_rating_team_win]
+        str(the_game.teams[0].win_percentage[2]) + ' - ' + str(the_game.teams[1].win_percentage[2]), kdr_team_win, kpr_team_win, hltv_rating_team_win,
+        the_game.match_score[0], the_game.match_score[1], the_game.match_score[2]]
         sheet.save_as('SimulationsCopy.ods')
         print(sheet)
     else:
@@ -325,6 +326,7 @@ def export_to_ods(the_game):
         str(the_game.teams[0].win_percentage[0]) + ' - ' + str(the_game.teams[1].win_percentage[0]) + ' - ' + str(the_game.tie_percentage[0]),
         str(the_game.teams[0].win_percentage[1]) + ' - ' + str(the_game.teams[1].win_percentage[1]) + ' - ' + str(the_game.tie_percentage[0]),
         str(the_game.teams[0].win_percentage[2]) + ' - ' + str(the_game.teams[1].win_percentage[2]) + ' - ' + str(the_game.tie_percentage[0]),
-        kdr_team_win, kpr_team_win, hltv_rating_team_win]
+        kdr_team_win, kpr_team_win, hltv_rating_team_win,
+        the_game.match_score[0], the_game.match_score[1], the_game.match_score[2]]
         sheet.save_as('SimulationsCopy.ods')
         print(sheet)

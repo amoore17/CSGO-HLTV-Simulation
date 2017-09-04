@@ -3,6 +3,7 @@
 import math # Using the floor() function
 import random # Roll for kills and deaths
 import sys
+from collections import Counter
 from hltv import *
 from simulationFunctions import *
 
@@ -31,6 +32,7 @@ if (the_game.bestof % 2 == 0):
 else:
     even_bestof = False
 the_game.ties = 0
+arr_won_rounds = []
 
 print('Starting the simulations')
 print('This is a best of ' + str(the_game.bestof))
@@ -80,6 +82,7 @@ for current_simulation in range(simulations):
             for i in range(the_game.team_count):
                 if (the_game.teams[i].won_rounds == required_won_rounds):
                     the_game.teams[i].won_matches += 1
+            arr_won_rounds.append(str(the_game.teams[0].won_rounds) + '-' + str(the_game.teams[1].won_rounds))
             reset_team_rounds(the_game)
             if (even_bestof == True and (the_game.teams[0].won_matches == the_game.teams[1].won_matches)):
                 the_game.ties += 1
@@ -107,6 +110,11 @@ for current_simulation in range(simulations):
     if (even_bestof == True):
         print('Tie percentage: ' + str(the_game.tie_percentage[current_simulation]) + '%')
     reset_team_trials(the_game)
+    count = Counter(arr_won_rounds)
+    common = count.most_common()[0]
+    common = common[0]
+    print('Predicted match score: ' + common)
+    the_game.match_score[current_simulation] = common
 answer = ''
 while (answer != 'y' and answer != 'n'):
     print()
