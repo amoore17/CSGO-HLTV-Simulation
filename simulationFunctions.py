@@ -168,18 +168,18 @@ def get_all_game_data(the_game, user_agent_spoof, page):
     bestof = int(bestof)
     the_game.bestof = bestof
 
-    the_game.date = re.findall(r'<div class="date" data-time-format="do &apos;of&apos; MMMM Y" data-unix="\d*">(.*)</div', page)
+    the_game.date = re.findall(r'<div class="date".*?data-unix="\d*">(.*?)</div', page)
     the_game.date = the_game.date[0]
     the_game.date = date_converter(the_game.date)
 
     # Find and save team names
     for i in range(the_game.team_count):
-        the_game.teams[i].name = re.findall(r'<div class="team' + str(i + 1) + '-gradient">.*<img alt="(.*)" src', page)
+        the_game.teams[i].name = re.findall(r'<div class="team' + str(i + 1) + '-gradient">.*<img alt="(.*?)" src', page)
         the_game.teams[i].name = the_game.teams[i].name[0]
 
     # Find the url to all teams
     for i in range(the_game.team_count):
-        the_game.teams[i].url = re.findall(r'<div class="team' + str(i + 1) + '-gradient"><a href="(/\w*/\d*/.*)"><img', page)
+        the_game.teams[i].url = re.findall(r'<div class="team' + str(i + 1) + '-gradient"><a href="(/\w*/\d*/.*?)"><img', page)
         the_game.teams[i].url = the_game.teams[i].url[0]
         the_game.teams[i].url = 'https://www.hltv.org' + the_game.teams[i].url
 
@@ -189,8 +189,8 @@ def get_all_game_data(the_game, user_agent_spoof, page):
         page = connect_to_url(the_game.teams[i].url, user_agent_spoof)
 
         # Get player names and URLs
-        player_names = re.findall(r'class="text-ellipsis">(.*)</a>', page)
-        player_urls = re.findall(r'<a href="(/\w*/\d*/.*)" class', page)
+        player_names = re.findall(r'class="text-ellipsis">(.*?)</a>', page)
+        player_urls = re.findall(r'<a href="(/\w*/\d*/.*?)" class', page)
         # Append hltv.org to all URLs
         for i2 in range(len(player_urls)):
             player_urls[i2] = 'https://www.hltv.org' + player_urls[i2]
@@ -206,7 +206,7 @@ def get_all_game_data(the_game, user_agent_spoof, page):
             page = connect_to_url(the_game.teams[i].players[i2].url, user_agent_spoof)
 
             # Assign detailed stats URLs
-            the_game.teams[i].players[i2].stats_url = re.findall(r'<a href="(/\w*/\w*/\d*/.*)" class', page)
+            the_game.teams[i].players[i2].stats_url = re.findall(r'<a href="(/\w*/\w*/\d*/.*?)" class', page)
             the_game.teams[i].players[i2].stats_url = the_game.teams[i].players[i2].stats_url[0]
             the_game.teams[i].players[i2].stats_url = 'https://www.hltv.org' + the_game.teams[i].players[i2].stats_url
 
@@ -215,7 +215,7 @@ def get_all_game_data(the_game, user_agent_spoof, page):
 
             # Grab player stats
             # Grab kills
-            the_game.teams[i].players[i2].kills = re.findall(r'<div class="stats-row"><span>total kills</span><span>(\d*)', page, re.I)
+            the_game.teams[i].players[i2].kills = re.findall(r'<div class="stats-row"><span>Total kills</span><span>(\d*?)</span>', page, re.I)
             the_game.teams[i].players[i2].kills = int(the_game.teams[i].players[i2].kills[0])
             #print('Player ' + str(i2 + 1) + ' kills: ' + str(the_game.teams[i].players[i2].kills))
 
@@ -230,7 +230,7 @@ def get_all_game_data(the_game, user_agent_spoof, page):
             #print('Player ' + str(i2 + 1) + ' rounds: ' + str(the_game.teams[i].players[i2].rounds))
 
             # Grab HLTV Rating
-            the_game.teams[i].players[i2].hltv_rating = re.findall(r'"strong">(.*)</span></div>', page, re.I)
+            the_game.teams[i].players[i2].hltv_rating = re.findall(r'"strong">(.*?)</span></div>', page, re.I)
             the_game.teams[i].players[i2].hltv_rating = float(the_game.teams[i].players[i2].hltv_rating[0])
             #print('Player ' + str(i2 + 1) + ' HLTV Rating: ' + str(the_game.teams[i].players[i2].hltv_rating))
 
