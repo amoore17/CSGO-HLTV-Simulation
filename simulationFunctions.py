@@ -189,8 +189,8 @@ def get_all_game_data(the_game, user_agent_spoof, page):
         page = connect_to_url(the_game.teams[i].url, user_agent_spoof)
 
         # Get player names and URLs
-        player_names = re.findall(r'class="text-ellipsis">(.*?)</a>', page)
-        player_urls = re.findall(r'<a href="(/\w*/\d*/.*?)" class', page)
+        player_names = re.findall(r'class="text-ellipsis bold">(.*?)</span>', page)
+        player_urls = re.findall(r'<a href="(/player/\d*?/.*?)">', page)
         # Append hltv.org to all URLs
         for i2 in range(len(player_urls)):
             player_urls[i2] = 'https://www.hltv.org' + player_urls[i2]
@@ -206,7 +206,7 @@ def get_all_game_data(the_game, user_agent_spoof, page):
             page = connect_to_url(the_game.teams[i].players[i2].url, user_agent_spoof)
 
             # Assign detailed stats URLs
-            the_game.teams[i].players[i2].stats_url = re.findall(r'<a href="(/\w*/\w*/\d*/.*?)" class', page)
+            the_game.teams[i].players[i2].stats_url = re.findall(r'<a href="(/stats/players/\d*?/.*?)" class', page)
             the_game.teams[i].players[i2].stats_url = the_game.teams[i].players[i2].stats_url[0]
             the_game.teams[i].players[i2].stats_url = 'https://www.hltv.org' + the_game.teams[i].players[i2].stats_url
 
